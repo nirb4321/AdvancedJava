@@ -51,55 +51,73 @@ public class WeatherMainController {
         drawBarChart();
     }
 
+    // Create the chart with the correct values
     private void drawBarChart() {
         gc.clearRect(0, 0, canv.getWidth(), canv.getHeight()); // Clear the canvas
 
         double[] temperatures = yearsData.get(currentYearIndex).getMonthlyTemperatures();
         int numBars = temperatures.length;
-        double barWidth = canv.getWidth() / (numBars * 1.5);  
-        double maxBarHeight = canv.getHeight() * 0.7; 
+        double barWidth = (canv.getWidth() - 50) / (numBars * 1.5); // Adjust for left margin
+        double maxBarHeight = canv.getHeight() * 0.7;
+        double leftMargin = 50; // Space on the left for tick marks and labels
 
         // Display year label at the top
         gc.setFill(Color.BLACK);
-        gc.fillText("Year:  " + (2017 + currentYearIndex), canv.getWidth() / 2 - 10 , 20);
+        gc.fillText("Year: " + (2017 + currentYearIndex), canv.getWidth() / 2 - 10, 20);
 
-        // Find the highest and lowest temperatures
-        double maxTemperature = Double.MIN_VALUE;
+        // Draw temperature scale (tick marks) on the left
+        int numTicks = 6; // Number of tick marks
+        double maxTemperature = 30.0; // Assume max temperature for scaling
+        double tickSpacing = maxBarHeight / numTicks;
+
+        for (int i = 0; i <= numTicks; i++) {
+            double tickY = canv.getHeight() - 20 - i * tickSpacing;
+            double temperatureValue = i * (maxTemperature / numTicks);
+            gc.setFill(Color.BLACK);
+            gc.fillText(String.format("%.0f°C", temperatureValue), leftMargin - 40, tickY + 5); // Draw tick labels
+            gc.strokeLine(leftMargin - 10, tickY, leftMargin, tickY); // Draw tick lines
+        }
+
+        // Find the indices of the lowest and highest temperatures
         double minTemperature = Double.MAX_VALUE;
-        int maxIndex = -1;
+        double maxTemperatureValue = Double.MIN_VALUE;
         int minIndex = -1;
+        int maxIndex = -1;
 
         for (int i = 0; i < numBars; i++) {
-            if (temperatures[i] > maxTemperature) {
-                maxTemperature = temperatures[i];
-                maxIndex = i;
-            }
             if (temperatures[i] < minTemperature) {
                 minTemperature = temperatures[i];
                 minIndex = i;
             }
+            if (temperatures[i] > maxTemperatureValue) {
+                maxTemperatureValue = temperatures[i];
+                maxIndex = i;
+            }
         }
 
-        // Draw each bar with appropriate color based on temperature comparison
+        // Draw each bar and temperature value at the top
         for (int i = 0; i < numBars; i++) {
-            double barHeight = (temperatures[i] / 30.0) * maxBarHeight; // Scale temperature to fit within max height
-            double xPosition = i * barWidth * 1.5;
-            double yPosition = canv.getHeight() - barHeight - 20; // Lift bar above month number
+            double barHeight = (temperatures[i] / maxTemperature) * maxBarHeight; // Scale temperature to fit within max height
+            double xPosition = leftMargin + i * barWidth * 1.5;
+            double yPosition = canv.getHeight() - barHeight - 20; // Lift bar above tick marks
 
-            // Set color based on temperature ranking
+            // Set color: Red for highest, Blue for lowest, Gray otherwise
             if (i == maxIndex) {
                 gc.setFill(Color.RED); // Highest temperature
             } else if (i == minIndex) {
                 gc.setFill(Color.BLUE); // Lowest temperature
             } else {
-                gc.setFill(Color.GRAY); // All other temperatures
+                gc.setFill(Color.GRAY); // Other temperatures
             }
 
             // Draw the rectangle bar
             gc.fillRect(xPosition, yPosition, barWidth, barHeight);
 
-            // Draw the month number below the bar
+            // Draw the temperature value at the top of the bar
             gc.setFill(Color.BLACK);
+            gc.fillText(String.format("%.1f", temperatures[i]), xPosition + barWidth / 4, yPosition - 5);
+
+            // Draw the month number below the bar
             gc.fillText(String.valueOf(i + 1), xPosition + barWidth / 3, canv.getHeight() - 5);
         }
     }
