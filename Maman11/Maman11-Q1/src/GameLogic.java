@@ -68,6 +68,7 @@ public class GameLogic {
     	return guess.equals(targetNumber);
     }
     
+    //print the number of bools and hits
     public void printDifferences(String guess) {
     	int bools = 0;
     	int hits = 0;
@@ -87,6 +88,7 @@ public class GameLogic {
     	System.out.println("Hits: " + hits);
     }
     
+    // Check if guess is valid according the the rules: 4 uniqe digits
     public boolean isValidGuess(String guess) {
         // Check if guess has exactly 4 characters
         if (guess.length() != 4) {
